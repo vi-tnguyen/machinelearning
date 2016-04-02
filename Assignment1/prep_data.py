@@ -12,7 +12,6 @@ import requests
 # original csv
 import string
 
-
 def descr_hist(filename):
     '''
     Takes in a dataframe and returns a dataframe of summary statistics per 
@@ -51,7 +50,6 @@ def descr_hist(filename):
             ax.set_title(new_title)
 
         fig = ax.get_figure()
-        plt.locator_params
         png_name = 'hist_' + col + '.png'
         fig.savefig(png_name)
 
@@ -74,7 +72,6 @@ def descr_hist(filename):
 
     return desc_df, df
 
-desc_df, df = descr_hist('mock_student_data.csv')
 
 def infer_gender(dataframe, name_column, gender_column):
     '''
@@ -102,15 +99,19 @@ def infer_gender(dataframe, name_column, gender_column):
     
     return dataframe
 
-#def cond_mean(dataframe, attribute):
+def fillna_mean(dataframe):
+    dataframe = dataframe.fillna(dataframe.mean())
+    dataframe.to_csv('mock_student_data_gend_inf_fillna_mean.csv')
+
+def cond_mean(dataframe, list_of_attributes, cond_attribute):
+    for attr in list_of_attributes:
+        dataframe[attr] = dataframe.groupby(cond_attribute).\
+        transform(lambda x: x.fillna(x.mean()))
+    dataframe.to_csv('mock_student_data_gend_inf_fillna_cond_mean.csv')
 
 #def regression(dataframe, attribute):
 
-#def infer_quant_var(dataframe, attribute, function):
-    '''
-    Takes in a dataframe and an attribute (column) in the dataframe to fill
-    in the missing values for that column using the function (the mean, 
-    conditional mean, mode, etc. for the column.
-    Returns a new dataframe with the missing values filled in.
-    '''
-
+desc_df, df = descr_hist('mock_student_data.csv')
+df = infer_gender(df, 'First_name', 'Gender')
+fillna_mean(df)
+cond_mean(df, list_of_attributes, 'Graduated')
