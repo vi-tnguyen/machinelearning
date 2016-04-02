@@ -5,9 +5,15 @@
 import matplotlib.pylab as plt
 import pandas as pd
 import numpy as np
+# Requests installed request library for API use, with command 
+# 'sudo pip3 install requests'
+import requests
+# String used to capitalize gender received from API to align with style in 
+# original csv
+import string
 
 
-def descriptives(filename):
+def descr_hist(filename):
     '''
     Takes in a dataframe and returns a dataframe of summary statistics per 
     variable including mean, median, mode, standard deviation, and the number 
@@ -65,16 +71,36 @@ def descriptives(filename):
                 else: 
                     desc_df.loc[keyword, col] = val_series[col] 
         desc_df.to_csv('summary_stats.csv')
-        
-    return desc_df
 
+    return desc_df, df
 
-#def infer_gender(dataframe):
+desc_df, df = descr_hist('mock_student_data.csv')
+
+def infer_gender(dataframe, name_column, gender_column):
     '''
-    Takes in a dataframe with the data where the gender is missing and infers
-    the gender of the student based on the student's name using the 
-    genderize API from www.genderize.io.
+    Takes in a dataframe with the data where the gender is missing, and the
+    name column that we want to use to infer the gender of the student based 
+    using the genderize API from www.genderize.io.
     '''
+    MAX_NAMES_PER_QUERY = 10
+    # Adds a country filter to localize the inference data set to just U.S names
+    # and genders. Country code can be found here: 
+    # https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
+    COUNTRY = 'us'
+
+    # Saves a series of rows in dataframe that had Gender as null; and retains
+    # the index of the original dataframe for us to reference
+    null_gender_srs = dataframe[dataframe[gender_column].isnull()]
+
+    for i in null_gender_srs.index:
+        indiv_name = df.loc[i, name_column]
+        r = requests.get('https://api.genderize.io/?name={}&country_id={}'\
+            .format(indiv_name, COUNTRY))
+        dataframe.loc[i, gender_column] = string.capwords(r.json()['gender'])
+
+    dataframe.to_csv('mock_student_data_gender_inferred.csv')
+    
+    return dataframe
 
 #def cond_mean(dataframe, attribute):
 
