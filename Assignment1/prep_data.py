@@ -12,7 +12,13 @@ import requests
 # original csv
 import string
 
-def descr_hist(filename):
+# Key constant to limit the # of x-values shown in histogram charting
+MAX_X_UNIQUE_VALUES = 100
+
+# List of values for which we will infer missing values
+list_of_attributes = ['Age', 'GPA', 'Days_missed']
+
+def descr_hist(filename, output_filename):
     '''
     Takes in a dataframe and returns a dataframe of summary statistics per 
     variable including mean, median, mode, standard deviation, and the number 
@@ -28,9 +34,6 @@ def descr_hist(filename):
     # Creates blank dataframe filled with NaN to store the summary statistics
     # that we'll calculate
     desc_df = pd.DataFrame(np.nan, index = desc_list, columns = list(df.columns))
-
-    # Key constant to limit the # of x-values shown in histogram charting
-    MAX_X_UNIQUE_VALUES = 100
 
     for col in list(df.columns):
 
@@ -52,6 +55,8 @@ def descr_hist(filename):
         fig = ax.get_figure()
         png_name = 'hist_' + col + '.png'
         fig.savefig(png_name)
+        print('{} created'.format(png_name))
+        plt.show()
 
         ## Calculates the summary statistics
         for keyword, val_series in stats_dict.items():
@@ -68,12 +73,13 @@ def descr_hist(filename):
                     desc_df.loc[keyword, col] = mode_str
                 else: 
                     desc_df.loc[keyword, col] = val_series[col] 
-        desc_df.to_csv('summary_stats.csv')
+        desc_df.to_csv(output_filename)
+        print('{} created'.format(output_filename))
 
     return desc_df, df
 
 
-def infer_gender(dataframe, name_column, gender_column):
+def infer_gender(dataframe, name_column, gender_column, output_filename):
     '''
     Takes in a dataframe with the data where the gender is missing, and the
     name column that we want to use to infer the gender of the student based 
@@ -95,23 +101,32 @@ def infer_gender(dataframe, name_column, gender_column):
             .format(indiv_name, COUNTRY))
         dataframe.loc[i, gender_column] = string.capwords(r.json()['gender'])
 
-    dataframe.to_csv('mock_student_data_gender_inferred.csv')
-    
+    dataframe.to_csv(output_filename)
+    print('{} created'.format(output_filename))
+    print('Number of records with missing gender after inference: {}'.format
+        df[gender_column].isnull().sum())
+
     return dataframe
 
-def fillna_mean(dataframe):
+def fillna_mean(dataframe, output_filename):
     dataframe = dataframe.fillna(dataframe.mean())
-    dataframe.to_csv('mock_student_data_gend_inf_fillna_mean.csv')
+    dataframe.to_csv(output_filename)
+    print('{} created'.format(output_filename))
 
-def cond_mean(dataframe, list_of_attributes, cond_attribute):
+
+def cond_mean(dataframe, list_of_attributes, cond_attribute, output_filename):
     for attr in list_of_attributes:
         dataframe[attr] = dataframe.groupby(cond_attribute).\
         transform(lambda x: x.fillna(x.mean()))
-    dataframe.to_csv('mock_student_data_gend_inf_fillna_cond_mean.csv')
+    dataframe.to_csv(output_filename)
+    print('{} created'.format(output_filename))
+
 
 #def regression(dataframe, attribute):
 
-desc_df, df = descr_hist('mock_student_data.csv')
-df = infer_gender(df, 'First_name', 'Gender')
-fillna_mean(df)
-cond_mean(df, list_of_attributes, 'Graduated')
+desc_df, df = descr_hist('mock_student_data.csv', 'summary_stats.csv')
+df = infer_gender(df, 'First_name', 'Gender', 
+    'mock_student_data_gender_inferred.csv')
+fillna_mean(df, 'mock_student_data_gend_inf_fillna_mean.csv')
+cond_mean(df, list_of_attributes, 'Graduated', 
+    'mock_student_data_gend_inf_fillna_cond_mean.csv')
