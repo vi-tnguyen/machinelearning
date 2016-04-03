@@ -1,0 +1,3 @@
+# Machine Learning for Public Policy
+# Assignment 1: Prepping Student Data
+# Name: Vi Nguyen
