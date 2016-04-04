@@ -109,6 +109,7 @@ def infer_gender(dataframe, name_column, gender_column, output_filename):
 
     return dataframe
 
+
 def fillna_mean(dataframe, output_filename):
     dataframe = dataframe.fillna(dataframe.mean())
     dataframe.to_csv(output_filename)
@@ -122,13 +123,12 @@ def cond_mean(dataframe, list_of_attributes, cond_attribute, output_filename):
     dataframe.to_csv(output_filename)
     print('{} created'.format(output_filename))
 
-#def regression(dataframe, attribute):
-
+# Executions for jupyter notebook and write-up
 desc_df, df = descr_hist('mock_student_data.csv', 'summary_stats.csv')
 df = infer_gender(df, 'First_name', 'Gender', 
     'mock_student_data_gender_inferred.csv')
 fillna_mean(df, 'mock_student_data_gend_inf_fillna_mean.csv')
 cond_mean(df, list_of_attributes, 'Graduated', 
     'mock_student_data_gend_inf_fillna_cond_mean.csv')
-cond_mean(df, list_of_attributes, ['Graduated', 'Female'] 
+cond_mean(df, list_of_attributes, ['Graduated', 'Gender'], 
     'mock_student_data_gend_inf_fillna_cond_mean2.csv')
