@@ -111,12 +111,24 @@ def infer_gender(dataframe, name_column, gender_column, output_filename):
 
 
 def fillna_mean(dataframe, output_filename):
+    ''' 
+    Takes in a dataframe and a string for the output filename and creates 
+    a csv of the updated dataset with the missing values filled in with the
+    column's mean
+    '''
     dataframe = dataframe.fillna(dataframe.mean())
     dataframe.to_csv(output_filename)
     print('{} created'.format(output_filename))
 
 
 def cond_mean(dataframe, list_of_attributes, cond_attribute, output_filename):
+    ''' 
+    Takes in a dataframe, a list of columns for which we we will fill in the 
+    missing values for, a string or list of strings of the conditional 
+    attributes that we want to use, and the output filename.
+    Returns a csv of the updated dataset with the missing values filled in with the
+    column's mean
+    '''
     for attr in list_of_attributes:
         dataframe[attr] = dataframe.groupby(cond_attribute).\
         transform(lambda x: x.fillna(x.mean()))
