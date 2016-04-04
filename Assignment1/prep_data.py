@@ -122,7 +122,6 @@ def cond_mean(dataframe, list_of_attributes, cond_attribute, output_filename):
     dataframe.to_csv(output_filename)
     print('{} created'.format(output_filename))
 
-
 #def regression(dataframe, attribute):
 
 desc_df, df = descr_hist('mock_student_data.csv', 'summary_stats.csv')
@@ -131,3 +130,5 @@ df = infer_gender(df, 'First_name', 'Gender',
 fillna_mean(df, 'mock_student_data_gend_inf_fillna_mean.csv')
 cond_mean(df, list_of_attributes, 'Graduated', 
     'mock_student_data_gend_inf_fillna_cond_mean.csv')
+cond_mean(df, list_of_attributes, ['Graduated', 'Female'] 
+    'mock_student_data_gend_inf_fillna_cond_mean2.csv')
