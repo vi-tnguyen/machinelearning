@@ -48,7 +48,7 @@ def descr_hist(filename, output_filename):
         # has too many values (i.e. ID, Names)
         if len(df_hist) > MAX_X_UNIQUE_VALUES:
             plt.locator_params(nbins = MAX_X_UNIQUE_VALUES / 2, axis = 'x')
-            new_title = title + '\n' + '(Only {} x-values are labeled)'.format(\
+            new_title = title + '\n' + '(Only {} x-values are labeled)'.format(
                 MAX_X_UNIQUE_VALUES // 2)
             ax.set_title(new_title)
 
@@ -74,7 +74,8 @@ def descr_hist(filename, output_filename):
                 else: 
                     desc_df.loc[keyword, col] = val_series[col] 
         desc_df.to_csv(output_filename)
-        print('{} created'.format(output_filename))
+    
+    print('{} created'.format(output_filename))
 
     return desc_df, df
 
@@ -103,8 +104,8 @@ def infer_gender(dataframe, name_column, gender_column, output_filename):
 
     dataframe.to_csv(output_filename)
     print('{} created'.format(output_filename))
-    print('Number of records with missing gender after inference: {}'.format
-        df[gender_column].isnull().sum())
+    print('Number of records with missing gender after inference: {}'.format(
+        df[gender_column].isnull().sum()))
 
     return dataframe
 
