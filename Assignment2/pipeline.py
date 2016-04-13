@@ -38,28 +38,24 @@ def read_explore_data(filename, filetype, output_filename):
     desc_df = pd.DataFrame(np.nan, index = desc_list, columns = list(df.columns))
 
     for col in list(df.columns):
+
         ## Plots the histograms
         plt.clf()
         df_hist = df[col].value_counts()
-        title = 'Histogram: ' + col
-        ax = df_hist.plot(kind = 'bar', title = title)
-        ax.set_ylabel('Count of Students')
+        x_vals = len(df_hist)
+        if x_vals > MAX_X_UNIQUE_VALUES:
+            print('{} contains {} values: too many to chart'.format(col, x_vals))
+        else:
+            title = 'Histogram: ' + col
+            ax = df_hist.plot(kind = 'bar', title = title)
+            ax.set_ylabel('Count of Students')
+            fig = ax.get_figure()
+            png_name = 'hist_' + col + '.png'
+            fig.savefig(png_name)
+            print('{} created'.format(png_name))
+            #plt.show()
 
-        # Limits the number of x-values displayed in cases where the variable
-        # has too many values (i.e. ID, Names)
-        if len(df_hist) > MAX_X_UNIQUE_VALUES:
-            plt.locator_params(nbins = MAX_X_UNIQUE_VALUES / 2, axis = 'x')
-            new_title = title + '\n' + '(Only {} x-values are labeled)'.format(
-                MAX_X_UNIQUE_VALUES // 2)
-            ax.set_title(new_title)
-
-        fig = ax.get_figure()
-        png_name = 'hist_' + col + '.png'
-        fig.savefig(png_name)
-        print('{} created'.format(png_name))
-        plt.show()
-
-        ## Calculates the summary statistics
+         ## Calculates the summary statistics
         for keyword, val_series in stats_dict.items():
             if col in val_series:
                 if keyword == 'mode':
@@ -76,7 +72,7 @@ def read_explore_data(filename, filetype, output_filename):
                     desc_df.loc[keyword, col] = val_series[col] 
         desc_df.to_csv(output_filename)
     
-    print('{} created'.format(output_filename))
+        print('{} created'.format(output_filename))
 
     return desc_df, df
 
