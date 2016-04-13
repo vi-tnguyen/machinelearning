@@ -119,6 +119,7 @@ def cont_to_discrete(dataframe, variable_name, no_bins, labels = None):
     categories
     '''
     values_to_turn_discrete = list(dataframe[variable_name])
+    print(values_to_turn_discrete)
     discrete_values = pd.cut(values_to_turn_discrete, no_bins, labels)
     dataframe[variable_name] = discrete_values
 
