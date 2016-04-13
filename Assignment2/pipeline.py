@@ -9,7 +9,7 @@ import numpy as np
 # Key constant to limit the # of x-values labeled in histogram charting
 MAX_X_UNIQUE_VALUES = 100
 
-def read_explore_data(filename, filetype):
+def read_explore_data(filename, filetype, output_filename):
     '''
     Takes in a filename, and its respective filetype to convert to a pandas 
     dataframe. Currently takes in the following filetype: csv
@@ -23,7 +23,7 @@ def read_explore_data(filename, filetype):
      Creates 
      -histograms of all variables to study distributions
     '''
-    if filetype = 'csv':
+    if filetype == 'csv':
         df = pd.read_csv(filename)
     else:
         print('only csv filetype is currently supported')
@@ -38,11 +38,10 @@ def read_explore_data(filename, filetype):
     desc_df = pd.DataFrame(np.nan, index = desc_list, columns = list(df.columns))
 
     for col in list(df.columns):
-
         ## Plots the histograms
         plt.clf()
         df_hist = df[col].value_counts()
-        title = 'Mock Student Data Histogram: ' + col
+        title = 'Histogram: ' + col
         ax = df_hist.plot(kind = 'bar', title = title)
         ax.set_ylabel('Count of Students')
 
@@ -93,6 +92,8 @@ def fillna_mean(dataframe, output_filename):
     dataframe.to_csv(output_filename)
     print('{} created'.format(output_filename))
 
+    return dataframe
+
 
 def fillna_cond_mean(dataframe, list_of_attributes, cond_attribute, output_filename):
     ''' 
@@ -107,6 +108,8 @@ def fillna_cond_mean(dataframe, list_of_attributes, cond_attribute, output_filen
         transform(lambda x: x.fillna(x.mean()))
     dataframe.to_csv(output_filename)
     print('{} created'.format(output_filename))
+
+    return dataframe
 
 
 ##Processing category (to binary) and continuous (to discrete) data
@@ -124,9 +127,9 @@ def cont_to_discrete(dataframe, variable_name, no_bins, labels = None):
     dataframe[variable_name] = discrete_values
 
     return dataframe
-    
 
-def cat_to_binary(dataframe, variable_name):
+
+def cat_to_binary(dataframe, variable_name = None):
     '''
     Takes in a dataframe, the name of a categorical variable that we need to 
     turn to a binary, and creates dummy variables for each value of the variable 
