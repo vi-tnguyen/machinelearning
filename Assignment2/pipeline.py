@@ -152,17 +152,17 @@ def cat_to_binary(dataframe, variable_name = None):
     return df
 
 
-def logreg(dataframe, y_var):
+def logreg(dataframe_train, dataframe_test, y_var):
     model = LogisticRegression()
-    y = np.ravel(dataframe[y_var])
-    print('length of y', len(y))
-    X = dataframe.drop(y_var, axis = 1)
-    print('length of x', len(X))
-    model = model.fit(X, y)
-    print('{} accuracy score'.format(model.score(X, y)))
-    print('{} positives'.format(y.mean()))
+    y_train = np.ravel(dataframe_train[y_var])
+    X_train = dataframe_train.drop(y_var, axis = 1)
+    model = model.fit(X_train, y_train)
+    X_test = dataframe_test.drop(y_var, axis = 1)
+    y_test = model.predict(X_test)
+    print('{} accuracy score'.format(model.score(X_test, y_test)))
+    print('{} positives'.format(y_train.mean()))
     # looking at coefficients
-    coef = pd.DataFrame(list(zip(X.columns, np.transpose(model.coef_))))
+    coef = pd.DataFrame(list(zip(X_train.columns, np.transpose(model.coef_))))
     coef.columns = ['Features', 'Logistic Regression Coefficients']
     output_filename = 'coefficients.csv'
     coef.to_csv(output_filename)
