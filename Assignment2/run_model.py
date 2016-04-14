@@ -1,27 +1,17 @@
 import pipeline as pl
 import matplotlib.pylab as plt
+from matplotlib import rcParams
 
-desc_df, df = pl.read_explore_data('cs-training.csv', 'csv', 'summary_stats.csv')
-df = pl.fillna_mean(df, 'cs-training_fillna_mean.csv')
+desc_df, df = pl.read_explore_data('cs-training.csv', 'csv', 'summary_stats_test.csv', 'train')
+desc_df_test, df_test = pl.read_explore_data('cs-test.csv', 'csv', 'summary_stats_test.csv', 'test')
+df = pl.fillna_mean(df, 'fillna_mean.csv')
+
 
 list_convert_to_discrete = ['RevolvingUtilizationOfUnsecuredLines', 
 'DebtRatio', 'MonthlyIncome']
 
 for col in list_convert_to_discrete:
-    df = pl.cont_to_discrete(df, col, 10)
-    plt.clf()
-    df_hist = df[col].value_counts()
-    x_vals = len(df_hist)
-    title = 'Histogram: ' + col
-    ax = df_hist.plot(kind = 'bar', title = title)
-    ax.set_ylabel('Count of Students')
-    fig = ax.get_figure()
-    png_name = 'hist_' + col + '.png'
-    fig.savefig(png_name)
-    print('{} created'.format(png_name))
-    plt.show()
+    pl.boxplot(df, col, 'train')
+    pl.boxplot(df_test, col, 'test')
 
-
-
-
-
+pl.logreg(df, 'SeriousDlqin2yrs')

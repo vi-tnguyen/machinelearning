@@ -3,13 +3,15 @@
 # Name: Vi Nguyen
 
 import matplotlib.pylab as plt
+from matplotlib import rcParams
 import pandas as pd
 import numpy as np
+from sklearn.linear_model import LogisticRegression
 
 # Key constant to limit the # of x-values labeled in histogram charting
 MAX_X_UNIQUE_VALUES = 100
 
-def read_explore_data(filename, filetype, output_filename):
+def read_explore_data(filename, filetype, output_filename, test_train_ind):
     '''
     Takes in a filename, and its respective filetype to convert to a pandas 
     dataframe. Currently takes in the following filetype: csv
@@ -37,7 +39,7 @@ def read_explore_data(filename, filetype, output_filename):
     # that we'll calculate
     desc_df = pd.DataFrame(np.nan, index = desc_list, columns = list(df.columns))
 
-    for col in list(df.columns):
+    for col in df.columns:
 
         ## Plots the histograms
         plt.clf()
@@ -45,15 +47,18 @@ def read_explore_data(filename, filetype, output_filename):
         x_vals = len(df_hist)
         if x_vals > MAX_X_UNIQUE_VALUES:
             print('{} contains {} values: too many to chart'.format(col, x_vals))
+        elif df.groupby(col).size().empty == True:
+            print('{} is empty'.format(col))
         else:
-            title = 'Histogram: ' + col
-            ax = df_hist.plot(kind = 'bar', title = title)
-            ax.set_ylabel('Count of Students')
+            title = 'Histogram: {} ({})'.format(col, test_train_ind)
+            ax = df.groupby(col).size().plot.bar()
+            ax.set_ylabel('Count of Occurances')
+            ax.set_title(title)
+            plt.setp(ax.get_xticklabels(), rotation = 'vertical', fontsize = 8)
             fig = ax.get_figure()
-            png_name = 'hist_' + col + '.png'
+            png_name = 'hist_' + col + '_' + test_train_ind + '.png'
             fig.savefig(png_name)
             print('{} created'.format(png_name))
-            #plt.show()
 
          ## Calculates the summary statistics
         for keyword, val_series in stats_dict.items():
@@ -70,11 +75,21 @@ def read_explore_data(filename, filetype, output_filename):
                     desc_df.loc[keyword, col] = mode_str
                 else: 
                     desc_df.loc[keyword, col] = val_series[col] 
-        desc_df.to_csv(output_filename)
+    desc_df.to_csv(output_filename)
     
-        print('{} created'.format(output_filename))
+    print('{} created'.format(output_filename))
 
     return desc_df, df
+
+# for when histograms are not useful
+def boxplot(df, col, test_train_ind):
+    plt.clf()
+    df.boxplot(column = col)
+    plt.title('Boxplot: {} ({})'.format(col, test_train_ind))
+    png_name = 'boxplot_' + col + '_' + test_train_ind + '.png'
+    rcParams.update({'figure.autolayout': True})
+    plt.savefig(png_name)
+    print('{} created'.format(png_name))
 
 
 ## Fill in missing data
@@ -137,4 +152,19 @@ def cat_to_binary(dataframe, variable_name = None):
     return df
 
 
-
+def logreg(dataframe, y_var):
+    model = LogisticRegression()
+    y = np.ravel(dataframe[y_var])
+    print('length of y', len(y))
+    X = dataframe.drop(y_var, axis = 1)
+    print('length of x', len(X))
+    model = model.fit(X, y)
+    print('{} accuracy score'.format(model.score(X, y)))
+    print('{} positives'.format(y.mean()))
+    # looking at coefficients
+    coef = pd.DataFrame(list(zip(X.columns, np.transpose(model.coef_))))
+    coef.columns = ['Features', 'Logistic Regression Coefficients']
+    output_filename = 'coefficients.csv'
+    coef.to_csv(output_filename)
+    print('{} created'.format(output_filename))
+    print(coef)

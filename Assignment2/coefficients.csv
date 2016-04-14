@@ -1,0 +1,11 @@
+,Features,Logistic Regression Coefficients
+0,RevolvingUtilizationOfUnsecuredLines,[ -4.26984677e-05]
+1,age,[-0.03476757]
+2,NumberOfTime30-59DaysPastDueNotWorse,[ 0.5035161]
+3,DebtRatio,[ -2.31948389e-05]
+4,MonthlyIncome,[ -3.98568686e-05]
+5,NumberOfOpenCreditLinesAndLoans,[-0.01219924]
+6,NumberOfTimes90DaysLate,[ 0.46317222]
+7,NumberRealEstateLoansOrLines,[ 0.07972455]
+8,NumberOfTime60-89DaysPastDueNotWorse,[-0.93614612]
+9,NumberOfDependents,[ 0.05139211]
