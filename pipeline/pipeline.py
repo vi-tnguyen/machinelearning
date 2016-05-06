@@ -22,6 +22,8 @@ from sklearn.cross_validation import train_test_split
 from sklearn.grid_search import ParameterGrid
 from sklearn.metrics import *
 from sklearn.preprocessing import StandardScaler
+from readto_pd_df import *
+from impute import *
 
 '''
 Following code has been minimally adapted from Rayid Ghani's magicloops
@@ -61,15 +63,22 @@ def define_clfs_params():
     'KNN' :{'n_neighbors': [1,5,10,25,50,100],\
     'weights': ['uniform','distance'],\
     'algorithm': ['auto','ball_tree','kd_tree']}}
-    print(clfs)
     return clfs, grid
 
-def magic_loop(df):
+def magic_loop(models_to_run, clfs, params, df, y_label):
+
     for n in range(1, 2):
-        X_train, X_test, y_train, y_test = train_test_split(df, test_size = 0.2, random_state = 13)
+        train, test = train_test_split(df, test_size = 0.2, random_state = 13)
+        #print(train.dtypes)
+        #print(test.dtypes)
+        y_train = train[y_label].as_matrix()
+        #print(y_train.dtypes)
+        y_test = test[y_label].as_matrix()
+        X_train = train.drop(y_label, axis = 1).as_matrix()
+        X_test = test.drop(y_label, axis = 1).as_matrix()
         for index,clf in enumerate([clfs[x] for x in models_to_run]):
             print(models_to_run[index])
-            parameter_values = grid[models_to_run[index]]
+            parameter_values = params[models_to_run[index]]
             for p in ParameterGrid(parameter_values):
                 try:
                     clf.set_params(**p)
@@ -115,17 +124,17 @@ def plot_precision_recall_n(y_true, y_prob, model_name):
 def precision_at_k(y_true, y_scores, k):
     threshold = np.sort(y_scores)[::-1][int(k*len(y_scores))]
     y_pred = np.asarray([1 if i >= threshold else 0 for i in y_scores])
-    return metrics.precision_score(y_true, y_pred)
+    return metrics.precision_score(y_true, y_pred, average = 'macro')
 
-'''
+
 def main(): 
 
     clfs, params = define_clfs_params()
     #models_to_run = ['KNN','RF','LR','ET','AB','GB','NB','DT']
-    models_to_run = ['KNN']
-    #get X and y
-    magic_loop(models_to_run, clfs, params, df)
+    models_to_run = ['GB']
+    df = read('cs-test.csv', 'csv')
+    df = fillna_mean(df)
+    magic_loop(models_to_run, clfs, params, df, 'NumberOfTime30-59DaysPastDueNotWorse')
 
 if __name__ == '__main__':
     main()
-'''
