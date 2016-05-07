@@ -36,7 +36,7 @@ def define_clfs_params():
     'ET': ExtraTreesClassifier(n_estimators = 10, n_jobs = -1, criterion = 'entropy'), \
     'AB': AdaBoostClassifier(DecisionTreeClassifier(max_depth = 1), algorithm = "SAMME", n_estimators = 200),\
     'LR': LogisticRegression(penalty = 'l1', C = 1e5),\
-    'SVM': svm.SVC(kernel = 'linear', probability = True, random_state = 0),\
+    'SVM': svm.LinearSVC(),\
     'GB': GradientBoostingClassifier(learning_rate = 0.05, subsample = 0.5, max_depth = 6, n_estimators = 10),\
     'NB': GaussianNB(),\
     'DT': DecisionTreeClassifier(),\
@@ -59,7 +59,7 @@ def define_clfs_params():
     'NB' : {},\
     'DT': {'criterion': ['gini', 'entropy'], 'max_depth': [1,5,10,20,50,100], \
     'max_features': ['sqrt','log2'],'min_samples_split': [2,5,10]},\
-    'SVM' :{'C' :[0.00001,0.0001,0.001,0.01,0.1,1,10],'kernel':['linear']}, \
+    'SVM' :{'C' :[0.00001,0.0001,0.001,0.01,0.1,1,10]}, \
     'KNN' :{'n_neighbors': [1,5,10,25,50,100],\
     'weights': ['uniform','distance'],\
     'algorithm': ['auto','ball_tree','kd_tree']}}
@@ -68,7 +68,7 @@ def define_clfs_params():
 def magic_loop(models_to_run, clfs, params, df, y_label):
 
     for n in range(1, 2):
-        train, test = train_test_split(df, test_size = 0.2, random_state = 13)
+        train, test = train_test_split(df, test_size = 0.2, random_state = 0)
         #print(train.dtypes)
         #print(test.dtypes)
         y_train = train[y_label].as_matrix()
@@ -77,22 +77,34 @@ def magic_loop(models_to_run, clfs, params, df, y_label):
         X_train = train.drop(y_label, axis = 1).as_matrix()
         X_test = test.drop(y_label, axis = 1).as_matrix()
         for index,clf in enumerate([clfs[x] for x in models_to_run]):
-            print(models_to_run[index])
+            model = models_to_run[index]
+            print(model)
             parameter_values = params[models_to_run[index]]
             for p in ParameterGrid(parameter_values):
                 try:
                     clf.set_params(**p)
+                    clf.fit(X_train, y_train)
                     print(clf)
-                    y_pred_probs = clf.fit(X_train, y_train).predict_proba(X_test)[:,1]
+                    #model = str(clf)
+                    if model != 'SVM':
+                        print('true')
+                        k = .05
+                        y_pred_probs = clf.predict_proba(X_test)[:,1]
+                        print('precision, accuracy and f1 scores at k = {}: {}'.format(k, classification_metrics_at_k(y_test, y_pred_probs, k)))
+                    all_y_pred = clf.predict(X_test)
                     #threshold = np.sort(y_pred_probs)[::-1][int(.05*len(y_pred_probs))]
                     #print threshold
-                    print(precision_at_k(y_test, y_pred_probs, .05))
+                    #print('precision_recall_curve:')
                     #plot_precision_recall_n(y_test,y_pred_probs,clf)
+                    print('auc curve: {}'.format(auc_metric(y_test, all_y_pred)))
+                    print('MSE: {}'.format(metrics.mean_squared_error(y_test, all_y_pred)))
+                    print()
+
                 except IndexError as e:
                     print('Error:', e)
                     continue
 
-
+'''
 
 def plot_precision_recall_n(y_true, y_prob, model_name):
     y_score = y_prob
@@ -120,21 +132,30 @@ def plot_precision_recall_n(y_true, y_prob, model_name):
     plt.title(name)
     #plt.savefig(name)
     plt.show()
+'''
 
-def precision_at_k(y_true, y_scores, k):
+# Classification metrics
+def classification_metrics_at_k(y_true, y_scores, k):
     threshold = np.sort(y_scores)[::-1][int(k*len(y_scores))]
     y_pred = np.asarray([1 if i >= threshold else 0 for i in y_scores])
-    return metrics.precision_score(y_true, y_pred, average = 'macro')
+    return (metrics.precision_score(y_true, y_pred, average = 'binary'),
+        metrics.accuracy_score(y_true, y_pred),
+        metrics.f1_score(y_true, y_pred, average = 'binary'))
+
+def auc_metric(y_true, all_y_pred):
+    fpr, tpr, thresholds = metrics.roc_curve(y_true, all_y_pred, pos_label = 2)
+    return metrics.auc(fpr, tpr)
 
 
 def main(): 
 
     clfs, params = define_clfs_params()
-    #models_to_run = ['KNN','RF','LR','ET','AB','GB','NB','DT']
-    models_to_run = ['GB']
-    df = read('cs-test.csv', 'csv')
+    #models_to_run = ['RF', 'LR', 'SVM', 'NB', 'DT', 'KNN']
+    #models_to_run = [ 'LR', 'SVM', 'NB', 'DT', 'KNN']
+    models_to_run = [ 'LR', 'NB', 'DT', 'KNN', 'SVM']
+    df = read('cs-training.csv', 'csv')
     df = fillna_mean(df)
-    magic_loop(models_to_run, clfs, params, df, 'NumberOfTime30-59DaysPastDueNotWorse')
+    magic_loop(models_to_run, clfs, params, df, 'SeriousDlqin2yrs')
 
 if __name__ == '__main__':
     main()

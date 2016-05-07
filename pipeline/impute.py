@@ -8,7 +8,7 @@ def fillna_mean(df):
     column's mean
     '''
     for var in df.columns:
-        print(var)
+        #print(var)
         if pd.isnull(df[var].mean()):
             df = df.drop(var, axis = 1)
             print('column dropped because it has no data: {}'.format(var))
